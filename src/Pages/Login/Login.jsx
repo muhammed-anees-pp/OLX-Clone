@@ -1,5 +1,11 @@
 import React, { useState } from 'react'
 import './Login.css'
+import glow_loading from '../../assets/loading.gif'
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { auth } from "../../firebaseConfig"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { useNavigate } from 'react-router-dom'
 
 function Login() {
   const [signState, setSignState] = useState("Sign In")
@@ -8,62 +14,91 @@ function Login() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState({})
+  const navigate = useNavigate()
 
   const validateForm = () => {
-    const newErrors = {}
-    
+    if (!email.trim()) {
+      toast.error("Email is required")
+      return false
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.error("Invalid email format")
+      return false
+    }
+    if (!password.trim()) {
+      toast.error("Password is required")
+      return false
+    }
     if (signState === "Sign Up") {
       if (!fullName.trim()) {
-        newErrors.fullName = "Full name is required"
+        toast.error("Full name is required")
+        return false
       }
-      
-      if (password !== confirmPassword) {
-        newErrors.confirmPassword = "Passwords don't match"
-      }
-      
       if (password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters"
+        toast.error("Password must be at least 6 characters")
+        return false
+      }
+      if (password !== confirmPassword) {
+        toast.error("Passwords don't match")
+        return false
       }
     }
-    
-    if (!email.trim()) {
-      newErrors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid"
-    }
-    
-    if (!password.trim()) {
-      newErrors.password = "Password is required"
-    }
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return true
   }
 
-  const user_auth = async (event) => {
-    event.preventDefault()
-    
-    if (!validateForm()) {
-      return
+  const firebaseErrorHandler = (error) => {
+    console.log(error.code)
+    if (signState === "Sign In") {
+      switch (error.code) {
+        case "auth/user-not-found":
+        case "auth/invalid-email":
+        case "auth/wrong-password":
+        case "auth/invalid-credential":
+          toast.error("Wrong email or password")
+          break
+        default:
+          toast.error(error.message)
+      }
+    } else {
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          toast.error("This email is already registered")
+          break
+        case "auth/weak-password":
+          toast.error("Password should be at least 6 characters")
+          break
+        default:
+          toast.error(error.message)
+      }
     }
-    
+  }
+
+
+  const user_auth = async (e) => {
+    e.preventDefault()
+    if (!validateForm()) return
+
     setLoading(true)
     try {
       if (signState === "Sign In") {
-        console.log("Login attempt:", { email, password })
+        await signInWithEmailAndPassword(auth, email, password)
+        toast.success("Logged in successfully!")
+        navigate('/')
       } else {
-        console.log("Signup attempt:", { fullName, email, password })
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+        await updateProfile(userCredential.user, { displayName: fullName })
+        toast.success("Account created successfully!")
+        navigate('/')
       }
     } catch (error) {
-      console.error("Authentication error:", error)
+      firebaseErrorHandler(error)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleStateChange = (newState) => {
     setSignState(newState)
-    setErrors({})
     setFullName("")
     setEmail("")
     setPassword("")
@@ -71,11 +106,12 @@ function Login() {
   }
 
   return (
-    loading ? <div className='login-spinner'>
-      <div className="spinner"></div>
-      <p>Please wait...</p>
-    </div> :
     <div className='login'>
+      {loading && (
+        <div className="login-spinner">
+          <img src={glow_loading} alt="Loading..." />
+        </div>
+      )}
       <div className="login-container">
         <div className="login-form">
           <div className="olx-logo">
@@ -83,54 +119,56 @@ function Login() {
           </div>
           <h1>{signState}</h1>
           <p className="login-subtext">
-            {signState === "Sign In" ? "Welcome back to OLX" : "Join millions of people using OLX"}
+            {signState === "Sign In"
+              ? "Welcome back to OLX"
+              : "Join millions of people using OLX"}
           </p>
-          
+
           <div className="auth-form">
             {signState === "Sign Up" && (
               <div className="input-group">
-                <input 
-                  value={fullName} 
-                  onChange={(e) => {setFullName(e.target.value)}} 
-                  type="text" 
-                  placeholder='Full Name'
+                <input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  type="text"
+                  placeholder="Full Name"
                 />
               </div>
             )}
-            
+
             <div className="input-group">
-              <input 
-                value={email} 
-                onChange={(e) => {setEmail(e.target.value)}} 
-                type="email" 
-                placeholder='Email' 
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                type="email"
+                placeholder="Email"
               />
             </div>
-            
+
             <div className="input-group">
-              <input 
-                value={password} 
-                onChange={(e) => {setPassword(e.target.value)}} 
-                type="password" 
-                placeholder='Password'
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                placeholder="Password"
               />
             </div>
-            
+
             {signState === "Sign Up" && (
               <div className="input-group">
-                <input 
-                  value={confirmPassword} 
-                  onChange={(e) => {setConfirmPassword(e.target.value)}} 
-                  type="password" 
-                  placeholder='Confirm Password'
+                <input
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  type="password"
+                  placeholder="Confirm Password"
                 />
               </div>
             )}
-            
-            <button onClick={user_auth} className="auth-button">
+
+            <button onClick={user_auth} className="auth-button" disabled={loading}>
               {signState}
             </button>
-            
+
             {signState === "Sign In" && (
               <div className="form-help">
                 <div className="remember">
@@ -141,15 +179,27 @@ function Login() {
               </div>
             )}
           </div>
-          
+
           <div className="form-switch">
-            {signState === "Sign In" ? 
-              <p>New to OLX? <span onClick={() => {handleStateChange("Sign Up")}}>Sign Up Now</span></p> : 
-              <p>Already have an account? <span onClick={() => {handleStateChange("Sign In")}}>Sign In Now</span></p>
-            }
+            {signState === "Sign In" ? (
+              <p>
+                New to OLX?{" "}
+                <span onClick={() => handleStateChange("Sign Up")}>
+                  Sign Up Now
+                </span>
+              </p>
+            ) : (
+              <p>
+                Already have an account?{" "}
+                <span onClick={() => handleStateChange("Sign In")}>
+                  Sign In Now
+                </span>
+              </p>
+            )}
           </div>
         </div>
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   )
 }
