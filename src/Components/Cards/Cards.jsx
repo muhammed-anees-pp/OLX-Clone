@@ -2,9 +2,12 @@ import React, { useEffect, useState } from "react"
 import "./Cards.css"
 import { db } from "../../firebaseConfig"
 import { collection, getDocs, query, orderBy } from "firebase/firestore"
+import { useNavigate } from 'react-router-dom'
+
 
 function Cards() {
   const [products, setProducts] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -38,7 +41,7 @@ function Cards() {
             <p>No products yet</p>
           ) : (
             products.map((product) => (
-              <div key={product.id} className="product-card">
+              <div key={product.id} className="product-card" onClick={() => navigate(`/product/${product.id}`)}>
                 <div className="product-image">
                   <img src={product.imageUrl} alt={product.title} />
                   <button className="favorite-btn">♡</button>
