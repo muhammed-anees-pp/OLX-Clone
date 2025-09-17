@@ -6,6 +6,7 @@ import { FaArrowLeft } from "react-icons/fa"
 import Navbar from "../../Components/Navbar/Navbar"
 import Footer from "../../Components/Footer/Footer"
 import "./ProductDetails.css"
+import glow_loading from "../../assets/loading.gif"
 
 function ProductDetails() {
   const { id } = useParams()
@@ -27,7 +28,12 @@ function ProductDetails() {
     fetchProduct()
   }, [id])
 
-  if (!product) return <div className="loading">Loading...</div>
+  if (!product)
+  return (
+    <div className="loading-spinner">
+      <img src={glow_loading} alt="Loading..." />
+    </div>
+  )
 
   return (
     <>

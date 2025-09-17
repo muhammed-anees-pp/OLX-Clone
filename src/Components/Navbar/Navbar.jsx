@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react";
 import "./Navbar.css"
 import { useNavigate } from "react-router-dom"
 import location_icon from "../../assets/icons/location-icon.png"
@@ -17,6 +17,20 @@ function Navbar() {
   const [profileDropdown, setProfileDropdown] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -75,7 +89,7 @@ function Navbar() {
               <span>Login</span>
             </div>
           ) : (
-            <div className="profile-section" onClick={() => setProfileDropdown(!profileDropdown)}>
+            <div ref={profileRef} className="profile-section" onClick={() => setProfileDropdown(!profileDropdown)}>
               <div className="profile-avatar">
                 <span>{user.displayName ? user.displayName[0].toUpperCase() : "U"}</span>
               </div>
