@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import './Categories.css';
+import React, { useState } from 'react'
+import './Categories.css'
 import dropdown_arrow from '../../assets/icons/dropdown-arrow.png'
 
 function Categories () {
-  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false)
 
   const categories = [
     'Cars',
@@ -69,7 +69,7 @@ function Categories () {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Categories;
+export default Categories

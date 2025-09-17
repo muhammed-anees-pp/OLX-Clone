@@ -74,4 +74,4 @@ function Cards() {
   );
 }
 
-export default Cards;
+export default Cards

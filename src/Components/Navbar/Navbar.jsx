@@ -1,15 +1,32 @@
-import React, { useState } from 'react'
-import './Navbar.css'
-import { useNavigate } from 'react-router-dom'
-import location_icon from '../../assets/icons/location-icon.png'
-import search_icon from '../../assets/icons/search-icon.png'
-import dropdown_arrow from '../../assets/icons/dropdown-arrow.png'
-import heart_icon from '../../assets/icons/heart-icon.png'
+import React, { useState } from "react"
+import "./Navbar.css"
+import { useNavigate } from "react-router-dom"
+import location_icon from "../../assets/icons/location-icon.png"
+import search_icon from "../../assets/icons/search-icon.png"
+import dropdown_arrow from "../../assets/icons/dropdown-arrow.png"
+import heart_icon from "../../assets/icons/heart-icon.png"
+import { auth } from "../../firebaseConfig"
+import { signOut } from "firebase/auth"
+import { toast } from "react-toastify"
+import { useAuth } from "../AuthContext/AuthContext"
+
+
 
 function Navbar() {
   const [locationDropdown, setLocationDropdown] = useState(false)
   const [profileDropdown, setProfileDropdown] = useState(false)
+  const { user } = useAuth()
   const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast.success("Logged out successfully")
+      navigate("/login")
+    } catch (error) {
+      toast.error("Error logging out",error)
+    }
+  }
 
   return (
     <nav className="navbar">
@@ -20,17 +37,9 @@ function Navbar() {
 
         <div className="location-selector" onClick={() => setLocationDropdown(!locationDropdown)}>
           <div className="location-content">
-            <img 
-              src={location_icon}
-              alt="Location" 
-              className="location-icon"
-            />
+            <img src={location_icon} alt="Location" className="location-icon" />
             <span>India</span>
-            <img 
-              src={dropdown_arrow}
-              alt="Dropdown" 
-              className="location-icon"
-            />
+            <img src={dropdown_arrow} alt="Dropdown" className="location-icon" />
           </div>
           {locationDropdown && (
             <div className="location-dropdown">
@@ -44,17 +53,9 @@ function Navbar() {
 
         <div className="search-container">
           <div className="search-bar">
-            <input 
-              type="text" 
-              placeholder="Find Cars, Mobile Phones and more..."
-              className="search-input"
-            />
+            <input type="text" placeholder="Find Cars, Mobile Phones and more..." className="search-input" />
             <button className="search-button">
-              <img 
-                src={search_icon} 
-                alt="Search" 
-                className="search-icon"
-              />
+              <img src={search_icon} alt="Search" className="search-icon" />
             </button>
           </div>
         </div>
@@ -62,45 +63,43 @@ function Navbar() {
         <div className="navbar-right">
           <div className="language-selector">
             <span>ENGLISH</span>
-            <img 
-              src={dropdown_arrow}
-              alt="Dropdown" 
-              className="dropdown-arrow"
-            />
+            <img src={dropdown_arrow} alt="Dropdown" className="dropdown-arrow" />
           </div>
 
           <div className="favorites-icon">
-            <img 
-              src={heart_icon}
-              alt="Favorites" 
-              className="heart-icon"
-            />
+            <img src={heart_icon} alt="Favorites" className="heart-icon" />
           </div>
 
-          <div className="login-link">
-            <span>Login</span>
-          </div>
-
-          <div className="profile-section" onClick={() => setProfileDropdown(!profileDropdown)}>
-            <div className="profile-avatar">
-              <span>M</span>
+          {!user ? (
+            <div className="login-link" onClick={() => navigate("/login")}>
+              <span>Login</span>
             </div>
-            <img 
-              src={dropdown_arrow}
-              alt="Dropdown" 
-              className="dropdown-arrow"
-            />
-            {profileDropdown && (
-              <div className="profile-dropdown">
-                <div className="dropdown-item">My Account</div>
-                <div className="dropdown-item">My Orders</div>
-                <div className="dropdown-item">Settings</div>
-                <div className="dropdown-item">Logout</div>
+          ) : (
+            <div className="profile-section" onClick={() => setProfileDropdown(!profileDropdown)}>
+              <div className="profile-avatar">
+                <span>{user.displayName ? user.displayName[0].toUpperCase() : "U"}</span>
               </div>
-            )}
-          </div>
-
-          <button className="sell-button" onClick={() => navigate('/Sell')}>
+              <img src={dropdown_arrow} alt="Dropdown" className="dropdown-arrow" />
+              {profileDropdown && (
+                <div className="profile-dropdown">
+                  <div className="dropdown-item">My Account</div>
+                  <div className="dropdown-item">My Orders</div>
+                  <div className="dropdown-item">Settings</div>
+                  <div className="dropdown-item" onClick={handleLogout}>Logout</div>
+                </div>
+              )}
+            </div>
+          )}
+          <button className="sell-button" onClick={() => {
+              if (user) {
+                navigate("/sell");
+              } else {
+                toast.error("You have to login first")
+                setTimeout(() => {
+                navigate("/login")
+                }, 1500)
+              }
+            }}>
             <span className="plus-icon">+</span>
             <span>SELL</span>
           </button>
