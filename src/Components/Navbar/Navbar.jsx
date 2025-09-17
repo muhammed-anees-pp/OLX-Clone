@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import './Navbar.css';
+import React, { useState } from 'react'
+import './Navbar.css'
+import { useNavigate } from 'react-router-dom'
 import location_icon from '../../assets/icons/location-icon.png'
 import search_icon from '../../assets/icons/search-icon.png'
 import dropdown_arrow from '../../assets/icons/dropdown-arrow.png'
 import heart_icon from '../../assets/icons/heart-icon.png'
 
 function Navbar() {
-  const [locationDropdown, setLocationDropdown] = useState(false);
-  const [profileDropdown, setProfileDropdown] = useState(false);
+  const [locationDropdown, setLocationDropdown] = useState(false)
+  const [profileDropdown, setProfileDropdown] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <div className="navbar-logo">
+        <div className="navbar-logo" onClick={() => navigate("/")}>
           <img src="https://logos-world.net/wp-content/uploads/2022/04/OLX-Logo.png" alt="OLX" />
         </div>
 
@@ -98,7 +100,7 @@ function Navbar() {
             )}
           </div>
 
-          <button className="sell-button">
+          <button className="sell-button" onClick={() => navigate('/Sell')}>
             <span className="plus-icon">+</span>
             <span>SELL</span>
           </button>
