@@ -18,6 +18,14 @@ function Navbar() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const profileRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+
+  useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -67,7 +75,7 @@ function Navbar() {
 
         <div className="search-container">
           <div className="search-bar">
-            <input type="text" placeholder="Find Cars, Mobile Phones and more..." className="search-input" />
+            <input ref={searchInputRef} type="text" placeholder="Find Cars, Mobile Phones and more..." className="search-input" />
             <button className="search-button">
               <img src={search_icon} alt="Search" className="search-icon" />
             </button>
