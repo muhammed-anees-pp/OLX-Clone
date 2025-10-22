@@ -24,18 +24,35 @@ function Sell() {
   const navigate = useNavigate()
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    setImage(file)
-    setPreview(URL.createObjectURL(file))
-    setFormError("")
-  }
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+
+    if (!allowedTypes.includes(file.type)) {
+      setFormError("Please upload a valid image file (jpg, jpeg, png, gif, webp)");
+      setImage(null);
+      setPreview("");
+      return;
+    }
+
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+    setFormError("");
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!title.trim()) return setFormError("Please enter a product title")
     if (!category) return setFormError("Please select a category")
-    if (!price) return setFormError("Please enter a price")
+    const parsedPrice = Number(price);
+    if (!price.trim()) return setFormError("Please enter a price");
+    if (isNaN(parsedPrice)) return setFormError("Price must be a valid number");
+    if (parsedPrice <= 0) return setFormError("Price must be greater than zero");
+    if (parsedPrice > 10000000)
+      return setFormError("Price cannot exceed 10,000,000");
     if (!location.trim()) return setFormError("Please enter a location")
     if (!description.trim()) return setFormError("Please enter a description")
     if (!image) return setFormError("Please upload an image")
